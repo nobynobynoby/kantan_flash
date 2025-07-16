@@ -6,6 +6,8 @@ import sys
 # --- 設定 ---
 # 出力するzipファイルの名前
 RELEASE_NAME = "kantan_flash_release"
+# zip内に作成するフォルダ名
+FOLDER_IN_ZIP = "kantan_flash"
 # 各ファイルが格納されているディレクトリ
 DIST_DIR = "dist"
 TOOLS_DIR = "tools"
@@ -49,17 +51,21 @@ def main():
     staging_dir = os.path.join(RELEASE_DIR, "staging")
     if os.path.exists(staging_dir):
         shutil.rmtree(staging_dir)
-    os.makedirs(staging_dir)
+    
+    # zip内に作成するディレクトリのパス
+    archive_content_dir = os.path.join(staging_dir, FOLDER_IN_ZIP)
+    os.makedirs(archive_content_dir)
 
     # --- ファイルをステージングディレクトリにコピー ---
-    shutil.copy(exe_path, staging_dir)
-    shutil.copy(esptool_path, staging_dir)
-    shutil.copy(firmware_path, staging_dir)
-    print(f"\nファイルを '{staging_dir}' にコピーしました。")
+    shutil.copy(exe_path, archive_content_dir)
+    shutil.copy(esptool_path, archive_content_dir)
+    # .binファイルは "firmware.bin" という固定の名前にしてコピーする
+    shutil.copy(firmware_path, os.path.join(archive_content_dir, "firmware.bin"))
+    print(f"\nファイルを '{archive_content_dir}' にコピーしました。")
 
     # --- zipファイルを作成 ---
     zip_output_path = os.path.join(RELEASE_DIR, RELEASE_NAME)
-    shutil.make_archive(zip_output_path, 'zip', staging_dir)
+    shutil.make_archive(zip_output_path, 'zip', root_dir=staging_dir)
     print(f"'{zip_output_path}.zip' を作成しました。")
 
     # --- ステージングディレクトリをクリーンアップ ---
