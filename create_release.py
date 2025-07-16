@@ -1,0 +1,77 @@
+import os
+import shutil
+import glob
+import sys
+
+# --- 設定 ---
+# 出力するzipファイルの名前
+RELEASE_NAME = "kantan_flash_release"
+# 各ファイルが格納されているディレクトリ
+DIST_DIR = "dist"
+TOOLS_DIR = "tools"
+FIRMWARE_DIR = "firmware"
+# 出力先ディレクトリ
+RELEASE_DIR = "release"
+
+
+def find_file(search_path, file_description):
+    """指定されたパスでファイルを探し、見つからなければエラーで終了する"""
+    if not os.path.exists(search_path):
+        print(f"エラー: {file_description}が見つかりません。")
+        print(f"パス: {os.path.abspath(search_path)}")
+        sys.exit(1)
+    return search_path
+
+def find_firmware(search_dir):
+    """ファームウェアディレクトリから.binファイルを探す"""
+    firmware_files = glob.glob(os.path.join(search_dir, '*.bin'))
+    if not firmware_files:
+        print(f"エラー: '{search_dir}' フォルダに .bin ファイルが見つかりません。")
+        sys.exit(1)
+    # 最初に見つかったものを返す
+    return firmware_files[0]
+
+def main():
+    """リリース用のzipファイルを作成する"""
+    print("リリースパッケージの作成を開始します...")
+
+    # --- 必要なファイルのパスを特定 ---
+    exe_path = find_file(os.path.join(DIST_DIR, 'kantan_flash.exe'), "メイン実行ファイル")
+    esptool_path = find_file(os.path.join(TOOLS_DIR, 'esptool.exe'), "esptool実行ファイル")
+    firmware_path = find_firmware(FIRMWARE_DIR)
+
+    print("以下のファイルをパッケージします:")
+    print(f"  - {exe_path}")
+    print(f"  - {esptool_path}")
+    print(f"  - {firmware_path}")
+
+    # --- 一時的なステージングディレクトリを作成 ---
+    staging_dir = os.path.join(RELEASE_DIR, "staging")
+    if os.path.exists(staging_dir):
+        shutil.rmtree(staging_dir)
+    os.makedirs(staging_dir)
+
+    # --- ファイルをステージングディレクトリにコピー ---
+    shutil.copy(exe_path, staging_dir)
+    shutil.copy(esptool_path, staging_dir)
+    shutil.copy(firmware_path, staging_dir)
+    print(f"\nファイルを '{staging_dir}' にコピーしました。")
+
+    # --- zipファイルを作成 ---
+    zip_output_path = os.path.join(RELEASE_DIR, RELEASE_NAME)
+    shutil.make_archive(zip_output_path, 'zip', staging_dir)
+    print(f"'{zip_output_path}.zip' を作成しました。")
+
+    # --- ステージングディレクトリをクリーンアップ ---
+    shutil.rmtree(staging_dir)
+    print("一時ファイルをクリーンアップしました。")
+
+    print("\nリリースパッケージの作成が完了しました。")
+    print(f"出力先: {os.path.abspath(RELEASE_DIR)}")
+
+
+if __name__ == '__main__':
+    # 出力ディレクトリがなければ作成
+    if not os.path.exists(RELEASE_DIR):
+        os.makedirs(RELEASE_DIR)
+    main()
