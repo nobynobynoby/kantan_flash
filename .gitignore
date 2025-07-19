@@ -1,0 +1,4 @@
+# Ignored directories and files
+build/
+kantan_flash.spec
+release/kantan_flash_release/
