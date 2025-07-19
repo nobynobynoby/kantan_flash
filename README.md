@@ -11,17 +11,17 @@
 ## 概要
 
 M5Stack CoreS3 SE へ、KANTAN Play Core のファームウェアを書き込むためのGUIツールです。
-`esptool.exe` を内部で利用し、以下の機能を提供します。
+`esptool` Pythonモジュールを内部で利用し、以下の機能を提供します。
 
 -   接続されているCOMポートの自動検出
 -   書き込むファームウェア（`.bin` ファイル）の選択
 -   書き込み状況のプログレスバー表示
--   `esptool.exe` からの出力ログのリアルタイム表示
+-   `esptool` からの出力ログのリアルタイム表示
 
 ## 使い方
 
 1.  ダウンロードしたzipファイルを解凍します。
-2.  解凍したフォルダを開き、`kantan_flash.exe` と `esptool.exe` が同じ場所にあることを確認して、`kantan_flash.exe` を実行します。
+2.  解凍したフォルダを開き、`kantan_flash.exe` を実行します。
 3.  ドロップダウンリストから、M5Stack CoreS3 SEが接続されているCOMポートを選択します。
 4.  「ファイル選択」ボタンを押し、書き込みたいファームウェア（`.bin` ファイル）を選択します。
 5.  「書き込み開始」ボタンを押すと、ファームウェアの書き込みが始まります。
@@ -33,12 +33,13 @@ M5Stack CoreS3 SE へ、KANTAN Play Core のファームウェアを書き込む
 
 -   Python 3.x
 -   pyserial
+-   esptool
 
 ### セットアップ
 
 1.  必要なライブラリをインストールします。
     ```shell
-    pip install pyserial
+    pip install pyserial esptool
     ```
 2.  ソースコードから直接実行する場合
     ```shell
@@ -63,4 +64,4 @@ M5Stack CoreS3 SE へ、KANTAN Play Core のファームウェアを書き込む
 
 このプロジェクトは **MIT License** の下で公開されています。
 
-また、本ツールは `esptool.exe` を利用します。`esptool.exe` のライセンスについては、`esptool` に同梱されているライセンスファイルなどを参照してください。
+また、本ツールは `esptool` Pythonモジュールを内部に含んでいます。`esptool` のライセンスは `LICENSE_ESPTOOL.txt` に含まれています。

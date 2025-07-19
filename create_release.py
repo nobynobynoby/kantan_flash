@@ -39,13 +39,13 @@ def main():
 
     # --- 必要なファイルのパスを特定 ---
     exe_path = find_file(os.path.join(DIST_DIR, 'kantan_flash.exe'), "メイン実行ファイル")
-    esptool_path = find_file(os.path.join(TOOLS_DIR, 'esptool.exe'), "esptool実行ファイル")
     firmware_path = find_firmware(FIRMWARE_DIR)
+    esptool_license_path = find_file("LICENSE_ESPTOOL.txt", "esptoolライセンスファイル")
 
     print("以下のファイルをパッケージします:")
     print(f"  - {exe_path}")
-    print(f"  - {esptool_path}")
     print(f"  - {firmware_path}")
+    print(f"  - {esptool_license_path}")
 
     # --- 一時的なステージングディレクトリを作成 ---
     staging_dir = os.path.join(RELEASE_DIR, "staging")
@@ -58,7 +58,7 @@ def main():
 
     # --- ファイルをステージングディレクトリにコピー ---
     shutil.copy(exe_path, archive_content_dir)
-    shutil.copy(esptool_path, archive_content_dir)
+    shutil.copy(esptool_license_path, archive_content_dir)
     # .binファイルは "firmware.bin" という固定の名前にしてコピーする
     shutil.copy(firmware_path, os.path.join(archive_content_dir, "firmware.bin"))
     print(f"\nファイルを '{archive_content_dir}' にコピーしました。")

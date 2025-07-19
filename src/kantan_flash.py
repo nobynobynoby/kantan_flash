@@ -6,6 +6,7 @@ import subprocess
 import threading
 import shutil
 import os
+import sys
 
 class ESPFlasherGUI(tk.Tk):
     def __init__(self):
@@ -63,25 +64,10 @@ class ESPFlasherGUI(tk.Tk):
         # 書き込み処理を別スレッドで実行
         threading.Thread(target=self.flash_task, args=(com, file), daemon=True).start()
 
-    def get_esptool_path(self):
-        # まずPATH上のesptool.exeを探す
-        path = shutil.which("esptool.exe")
-        if path:
-            return path
-
-        # 見つからなければ、exeと同じフォルダにあるesptool.exeを探す想定
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        possible_path = os.path.join(base_dir, "esptool.exe")
-        if os.path.isfile(possible_path):
-            return possible_path
-
-        raise FileNotFoundError("esptool.exe が見つかりません")
-
     def flash_task(self, com, file):
-        esptool_exe = self.get_esptool_path()
-        
         cmd = [
-            esptool_exe,
+            sys.executable, # Use the current Python interpreter
+            "-m", "esptool",
             "--chip", "esp32s3",
             "--port", com,
             "write_flash",
