@@ -40,12 +40,27 @@ def main():
     # --- 必要なファイルのパスを特定 ---
     exe_path = find_file(os.path.join(DIST_DIR, 'kantan_flash.exe'), "メイン実行ファイル")
     firmware_path = find_firmware(FIRMWARE_DIR)
+<<<<<<< HEAD
     esptool_license_path = find_file("LICENSE_ESPTOOL.txt", "esptoolライセンスファイル")
+=======
+    # 追加: ライセンスファイルのパスを特定
+    main_license_path = find_file("LICENSE", "メインライセンスファイル")
+    esptool_license_path = find_file(os.path.join(TOOLS_DIR, "LICENSE.txt"), "esptoolライセンスファイル")
+    # 追加: READMEファイルのパスを特定
+    readme_path = find_file("README.md", "READMEファイル")
+>>>>>>> 05d97b0cea9ab522e265f1d8d59d09af1f8f9cd6
 
     print("以下のファイルをパッケージします:")
     print(f"  - {exe_path}")
     print(f"  - {firmware_path}")
+<<<<<<< HEAD
     print(f"  - {esptool_license_path}")
+=======
+    # 追加: ライセンスファイルとREADMEファイルの表示
+    print(f"  - {main_license_path}")
+    print(f"  - {esptool_license_path}")
+    print(f"  - {readme_path}")
+>>>>>>> 05d97b0cea9ab522e265f1d8d59d09af1f8f9cd6
 
     # --- 一時的なステージングディレクトリを作成 ---
     staging_dir = os.path.join(RELEASE_DIR, "staging")
@@ -61,6 +76,11 @@ def main():
     shutil.copy(esptool_license_path, archive_content_dir)
     # .binファイルは "firmware.bin" という固定の名前にしてコピーする
     shutil.copy(firmware_path, os.path.join(archive_content_dir, "firmware.bin"))
+    # 追加: ライセンスファイルをコピー
+    shutil.copy(main_license_path, archive_content_dir)
+    shutil.copy(esptool_license_path, os.path.join(archive_content_dir, "LICENSE_esptool.txt"))
+    # 追加: READMEファイルをコピー
+    shutil.copy(readme_path, archive_content_dir)
     print(f"\nファイルを '{archive_content_dir}' にコピーしました。")
 
     # --- zipファイルを作成 ---
