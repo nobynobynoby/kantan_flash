@@ -48,15 +48,15 @@ M5Stack CoreS3 SE へ、KANTAN Play Core のファームウェアを書き込む
 
 ### ビルド方法
 
-`pyinstaller` を使って、単一の実行ファイルを生成できます。
+`build.py` スクリプトを使って、単一の実行ファイルを生成できます。
 
-1.  `pyinstaller` をインストールします。
+1.  必要なライブラリをインストールします。
     ```shell
-    pip install pyinstaller
+    pip install pyinstaller esptool
     ```
 2.  プロジェクトのルートディレクトリで以下のコマンドを実行し、ビルドします。
     ```shell
-    pyinstaller --onefile --windowed src/kantan_flash.py
+    python build.py
     ```
 3.  ビルドが完了すると、`dist` フォルダ内に `kantan_flash.exe` が生成されます。
 

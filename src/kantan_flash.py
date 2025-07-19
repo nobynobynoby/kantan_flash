@@ -7,6 +7,27 @@ import threading
 import shutil
 import os
 import sys
+import io
+import esptool
+
+class TextRedirector(io.TextIOBase):
+    def __init__(self, widget, progress_bar, tag="stdout"):
+        self.widget = widget
+        self.progress_bar = progress_bar
+        self.tag = tag
+        self.progress_re = re.compile(r'(\d+(\.\d+)?)%')
+
+    def write(self, s):
+        self.widget.insert(tk.END, s, (self.tag,))
+        self.widget.see(tk.END)
+
+        match = self.progress_re.search(s)
+        if match:
+            percent = float(match.group(1))
+            self.progress_bar.after(0, lambda p=percent: self.progress_bar.config(value=p))
+
+    def flush(self):
+        pass # No-op for this simple redirector
 
 class ESPFlasherGUI(tk.Tk):
     def __init__(self):
@@ -65,31 +86,40 @@ class ESPFlasherGUI(tk.Tk):
         threading.Thread(target=self.flash_task, args=(com, file), daemon=True).start()
 
     def flash_task(self, com, file):
-        cmd = [
-            sys.executable, # Use the current Python interpreter
-            "-m", "esptool",
-            "--chip", "esp32s3",
-            "--port", com,
-            "write_flash",
-            self.offset,
-            file
-        ]
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
+        # 標準出力をリダイレクト
+        old_stdout = sys.stdout
+        old_stderr = sys.stderr
+        sys.stdout = TextRedirector(self.log_text, self.progress, "stdout")
+        sys.stderr = TextRedirector(self.log_text, self.progress, "stderr")
 
-        progress_re = re.compile(r'(\d+(\.\d+)?)%')
+        try:
+            # esptool.main() に渡す引数を準備
+            args = [
+                "--chip", "esp32s3",
+                "--port", com,
+                "write_flash",
+                self.offset,
+                file
+            ]
+            
+            # esptool.main() を呼び出す
+            # esptool.main() は sys.exit() を呼び出す可能性があるため、SystemExit を捕捉する
+            try:
+                esptool.main(args)
+                self.log_text.insert(tk.END, "\n書き込みが完了しました。\n")
+            except SystemExit as e:
+                if e.code != 0:
+                    self.log_text.insert(tk.END, f"\nエラーが発生しました: {e.code}\n", "error")
+                else:
+                    self.log_text.insert(tk.END, "\n書き込みが完了しました。\n")
 
-        for line in proc.stdout:
-            self.log_text.insert(tk.END, line)
-            self.log_text.see(tk.END)
-
-            match = progress_re.search(line)
-            if match:
-                percent = float(match.group(1))
-                self.progress.after(0, lambda p=percent: self.progress.config(value=p))
-
-        proc.wait()
-        self.log_text.insert(tk.END, f"\n終了コード: {proc.returncode}\n")
-        self.progress.after(0, lambda: self.progress.config(value=0))
+        except Exception as e:
+            self.log_text.insert(tk.END, f"\n予期せぬエラー: {e}\n", "error")
+        finally:
+            # 標準出力を元に戻す
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr
+            self.progress.after(0, lambda: self.progress.config(value=0))
 
 if __name__ == "__main__":
     app = ESPFlasherGUI()
