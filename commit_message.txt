@@ -1,1 +1,7 @@
-feat: Add .gitignore to exclude build artifacts and temporary release directory
+feat: Refactor esptool integration and automate build/release process
+
+- Refactor `src/kantan_flash.py` to directly use `esptool` Python module, including progress bar updates and error handling.
+- Introduce `build.py` to automate `kantan_flash.exe` creation with dynamic `esptool` data bundling.
+- Update `create_release.py` to utilize `build.py` for executable generation and ensure all necessary files (including `LICENSE` and `README.md`) are correctly included in the release archive.
+- Update `README.md` with new build instructions.
+- Include updated `dist/kantan_flash.exe` and `release/kantan_flash_release.zip` in the commit for distribution.

@@ -37,7 +37,7 @@ class ESPFlasherGUI(tk.Tk):
 
         # COMポート自動検出
         self.com_var = tk.StringVar()
-        self.combobox = ttk.Combobox(self, textvariable=self.com_var, values=self.get_com_ports())
+        self.combobox = ttk.Combobox(self, textvariable=self.com_var, values=self.get_com_ports(), width=50)
         self.combobox.pack(pady=10)
 
         # ファイル選択
@@ -61,7 +61,8 @@ class ESPFlasherGUI(tk.Tk):
 
     def get_com_ports(self):
         ports = serial.tools.list_ports.comports()
-        return [p.device for p in ports]
+        # より詳細な情報を含む文字列を生成
+        return [f"{p.device} - {p.description}" for p in ports]
 
     def select_file(self):
         filename = filedialog.askopenfilename(filetypes=[("Binary files", "*.bin"), ("All files", "*.*")])
@@ -97,7 +98,14 @@ class ESPFlasherGUI(tk.Tk):
             args = [
                 "--chip", "esp32s3",
                 "--port", com,
+                "--baud", "1500000",
+                "--before", "default_reset",
+                "--after", "hard_reset",
                 "write_flash",
+                "-z",
+                "--flash_mode", "qio",
+                "--flash_freq", "80m",
+                "--flash_size", "16MB",
                 self.offset,
                 file
             ]
