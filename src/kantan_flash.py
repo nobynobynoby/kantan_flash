@@ -18,10 +18,16 @@ class TextRedirector(io.TextIOBase):
         self.progress_re = re.compile(r'(\d+(\.\d+)?)%')
 
     def write(self, s):
-        self.widget.insert(tk.END, s, (self.tag,))
+        # 制御文字（\rやANSIエスケープ）を\nに置換して見やすくする
+        cleaned = s.replace('\r', '\n')
+        # ANSIエスケープ（行頭戻し・消去）を除去
+        import re
+        cleaned = re.sub(r'\x1b\[[0-9;]*[A-Za-z]', '', cleaned)
+        for line in cleaned.splitlines(True):
+            self.widget.insert(tk.END, line, (self.tag,))
         self.widget.see(tk.END)
 
-        match = self.progress_re.search(s)
+        match = self.progress_re.search(cleaned)
         if match:
             percent = float(match.group(1))
             self.progress_bar.after(0, lambda p=percent: self.progress_bar.config(value=p))
@@ -63,6 +69,13 @@ class ESPFlasherGUI(tk.Tk):
         ports = serial.tools.list_ports.comports()
         # より詳細な情報を含む文字列を生成
         return [f"{p.device} - {p.description}" for p in ports]
+    
+    def get_selected_port(self):
+        """選択されたポートから実際のデバイス名を抽出"""
+        com_selection = self.com_var.get()
+        if " - " in com_selection:
+            return com_selection.split(" - ")[0]  # "COM6 - USB シリアル デバイス (COM6)" から "COM6" を抽出
+        return com_selection
 
     def select_file(self):
         filename = filedialog.askopenfilename(filetypes=[("Binary files", "*.bin"), ("All files", "*.*")])
@@ -70,9 +83,9 @@ class ESPFlasherGUI(tk.Tk):
             self.filepath.set(filename)
 
     def start_flash(self):
-        com = self.com_var.get()
+        com = self.get_selected_port()  # 実際のポート名を取得
         file = self.filepath.get()
-        if not com:
+        if not self.com_var.get():  # com_var が空でないかチェック
             messagebox.showwarning("エラー", "COMポートを選択してください")
             return
         if not file:
@@ -99,13 +112,13 @@ class ESPFlasherGUI(tk.Tk):
                 "--chip", "esp32s3",
                 "--port", com,
                 "--baud", "1500000",
-                "--before", "default_reset",
-                "--after", "hard_reset",
-                "write_flash",
+                "--before", "default-reset",
+                "--after", "hard-reset",
+                "write-flash",
                 "-z",
-                "--flash_mode", "qio",
-                "--flash_freq", "80m",
-                "--flash_size", "16MB",
+                "--flash-mode", "qio",
+                "--flash-freq", "80m",
+                "--flash-size", "16MB",
                 self.offset,
                 file
             ]
